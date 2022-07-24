@@ -9,6 +9,7 @@ int main()
 	string s;
 	while (1)
 	{
+		signal(SIGINT, sighandler);
 		cout << ">>";
 		getline(cin, s);
 		getCommandID(s);

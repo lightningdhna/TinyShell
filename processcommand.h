@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <fstream>
 #include <sstream>
+#include<signal.h>
 #include<iomanip>
 
 using namespace std;
@@ -18,12 +19,21 @@ string cString[100];
 HANDLE hHandless[100];
 int status[100];
 int n = 0;
+HANDLE hForeProcess;
 
 LPCWSTR stringToL(string s)
 {
     wstring stemp = wstring(s.begin(), s.end());
     LPCWSTR sw = stemp.c_str();
     return sw;
+}
+void sighandler(int signum) {
+    if (hForeProcess != NULL) {
+        TerminateProcess(hForeProcess, 0);
+        hForeProcess = NULL;
+    }
+    cout << "Quit foreground process" << endl;
+    cout << setfill('.') << setw(120) << '.' << setfill(' ') << endl;;
 }
 
 void openProcessInForeGround(string s)
@@ -33,7 +43,7 @@ void openProcessInForeGround(string s)
 
     PROCESS_INFORMATION pi;                 // lpStartupInfo    // lpProcessInformation
     STARTUPINFO si = { sizeof(STARTUPINFO) }; // cpp string must be modified to use in c
-
+    
     ZeroMemory(&si, sizeof(si)); // fill this block with zeros
     si.cb = sizeof(si);          // CreateProcess(cString, NULL, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
     if (!CreateProcess(
@@ -56,6 +66,7 @@ void openProcessInForeGround(string s)
     {
         cout << "SUCCEED" << endl;
     }
+    hForeProcess = pi.hProcess;
     WaitForSingleObject(pi.hProcess, INFINITE);
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
